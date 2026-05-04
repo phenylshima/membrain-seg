@@ -1,6 +1,8 @@
 import logging
 import os
 
+import gc
+
 import torch
 from monai.inferers import SlidingWindowInferer
 
@@ -183,6 +185,10 @@ def segment(
                 # store its probability map if uncertainty maps are enabled
                 if store_uncertainty_map:
                     all_tta_predictions[m] = correct_pred.detach().cpu()
+
+                del mirrored_input, mirrored_pred, correct_pred
+                gc.collect()
+                torch.cuda.empty_cache()
     if test_time_augmentation:
         predictions /= 8.0
         if store_uncertainty_map:
